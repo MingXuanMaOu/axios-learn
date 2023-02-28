@@ -1,4 +1,14 @@
+
 import { createApp } from 'vue'
+import ElementPlus from 'element-plus';
+import VueAxios from 'vue-axios'
+import axios from 'axios';
 import App from './App.vue'
 
-createApp(App).mount('#app')
+
+const app = createApp(App)
+app.use(ElementPlus)
+
+
+app.use(VueAxios, axios)
+app.mount('#app')

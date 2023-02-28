@@ -1,58 +1,110 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <el-container class="container">
+        <el-header>
+            <el-input placeholder="请输入" class="input" v-model="city">
+                <template #prepend>城市名：</template>
+            </el-input>
+        </el-header>
+        <el-main class="main">
+            <div class="today">
+                今天：
+                <span>{{this.todayData.weather ?? this.plc}} {{this.todayData.temperature ?? this.plc}}</span>
+                <span style="margin-left:20px">{{this.todayData.direct ?? this.plc}}</span>
+                <span style="margin-left:100px">{{this.todayData.date}}</span>
+            </div>
+            <div class="real">
+                <span class="temp">{{this.realtime.temperature ?? this.plc}}°</span>
+                <span class="realInfo">{{this.realtime.info ?? this.plc}}</span>
+                <span class="realInfo" style="margin-left:20px">{{this.realtime.direct ?? this.plc}}</span>
+                <span class="realInfo" style="margin-left:20px">{{this.realtime.power ?? this.plc}}</span>
+            </div>
+            <div class="real">
+                <span class="realInfo">空气质量：{{this.realtime.aqi ?? this.plc}}°</span>
+                <span class="realInfo" style="margin-left:20px">湿度：{{this.realtime.humidity ?? this.plc}}</span>
+            </div>
+            <div class="future">
+                <div class="header">5日天气预报</div>
+                <el-table :data="futureData" style="margin-top:30px">
+                    <el-table-column prop="date" label="日期"></el-table-column>
+                    <el-table-column prop="temperature" label="温度"></el-table-column>
+                    <el-table-column prop="weather" label="天气"></el-table-column>
+                    <el-table-column prop="direct" label="风向"></el-table-column>
+                </el-table>
+            </div>
+        </el-main>
+    </el-container>
 </template>
 
 <script>
+
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
+  mounted () {
+        this.axios.defaults.baseURL = '/myApi'
+        this.requestData()
+    },
+    data() {
+        return {
+            city:"上海",
+            weatherData:{},
+            todayData:{},
+            plc:"暂无数据",
+            realtime:{},
+            futureData:[]
+        }
+    },
+    watch: {
+        city() {
+            this.requestData()
+        }
+    },
+    methods: {
+        requestData() {
+            let city = encodeURI(this.city)
+            let api = `/simpleWeather/query?city=${city}&key=606d6666cc00ba7a6c9618ef22b83989`
+            this.axios.get(api).then((response)=>{
+                this.weatherData = response.data
+                this.todayData = this.weatherData.result.future[0]
+                this.realtime = this.weatherData.result.realtime
+                this.futureData = this.weatherData.result.future
+                console.log(response.data)
+            })
+        }
+    }
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
+<style>
+
+.container {
+    background: linear-gradient(rgb(13, 104, 188), rgb(54, 131, 195));
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+
+.input {
+    width: 300px;
+    margin-top: 20px;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+
+.today {
+    font-size: 20px;
+    color: white;
 }
-a {
-  color: #42b983;
+
+.temp {
+    font-size: 79px;
+    color: white;
 }
+
+.realInfo {
+    color: white;
+}
+
+.future {
+    margin-top: 40px;
+}
+
+.header {
+    color: white;
+    font-size: 27px;
+}
+
 </style>
